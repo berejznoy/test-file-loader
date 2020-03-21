@@ -8,7 +8,27 @@ const file = sequelize.define('File', {
     allowNull: false,
     type: Sequelize.INTEGER
   },
-  name: {
+  fieldname: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
+  originalname: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
+  encoding: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
+  mimetype: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
+  destination: {
+    type: Sequelize.STRING,
+    allowNull: false
+  },
+  filename: {
     type: Sequelize.STRING,
     allowNull: false
   },
@@ -16,16 +36,12 @@ const file = sequelize.define('File', {
     type: Sequelize.STRING,
     allowNull: false
   },
-  extension: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
-  mime: {
-    type: Sequelize.STRING,
-    allowNull: false
-  },
   size: {
     type: Sequelize.INTEGER,
+    allowNull: false
+  },
+  extension: {
+    type: Sequelize.STRING,
     allowNull: false
   },
 });

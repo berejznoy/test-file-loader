@@ -1,68 +1,51 @@
-const {Router} = require('express')
-const File = require('../models/file')
-const router = Router()
+const {Router} = require('express');
+const multer  = require('multer');
+const crypto  = require('crypto');
+const path = require('path');
+const router = Router();
+const file = require('../controllers/file');
 
-// Получение списка задач
-router.get('/', async (req, res) => {
-  try {
-    const todos = await File.findAll()
-    res.status(200).json(todos)
-  } catch (e) {
-    console.log(e)
-    res.status(500).json({
-      message: 'Server error'
-    })
-  }
-})
+const storage = multer.diskStorage({
+    destination: './uploads/',
+    filename: function (req, file, cb) {
+        crypto.pseudoRandomBytes(16, function (err, raw) {
+            if (err) return cb(err);
+            cb(null, raw.toString('hex') + path.extname(file.originalname))
+        })
+    }
+});
 
-// Создание новой задачи
-router.post('/', async (req, res) => {
-  try {
-    const todo = await File.create({
-      title: req.body.title,
-      done: false
-    })
-    res.status(201).json({todo})
-  } catch (e) {
-    console.log(e)
-    res.status(500).json({
-      message: 'Server error'
-    })
-  }
-})
+const upload = multer({ storage: storage });
 
-// Изменение задачи
-router.put('/:id', async (req, res) => {
-  try {
-    const todo = await File.findByPk(+req.params.id)
-    todo.done = req.body.done
-    await todo.save()
-    res.status(200).json({todo})
-  } catch (e) {
-    console.log(e)
-    res.status(500).json({
-      message: 'Server error'
-    })
-  }
-})
+/**
+ * Загрузка файлов
+ */
+router.post('/file/upload', upload.array('documents', 6), file.upload_files);
 
-// Удаление задачи
-router.delete('/:id', async (req, res) => {
-  try {
-    const todos = await File.findAll({
-      where: {
-        id: +req.params.id
-      }
-    })
-    const todo = todos[0]
-    await todo.destroy()
-    res.status(204).json({})
-  } catch (e) {
-    console.log(e)
-    res.status(500).json({
-      message: 'Server error'
-    })
-  }
-})
+/**
+ * Обновление файла
+ */
+router.put('/file/update/:id', upload.single('documents'), file.update_file);
 
-module.exports = router
+/**
+ * Получить список всех файлов
+ */
+router.get('/file/list', file.get_files);
+
+/**
+ * Получить инфо по конкретному файлу
+ */
+router.get('/file/:id', file.get_file);
+
+/**
+ * Удалить фаил
+ */
+router.delete('/file/delete/:id', file.delete_file);
+
+/**
+ * Загрузить файл
+ */
+router.get('/file/download/:id', file.download_file);
+
+
+module.exports = router;
