@@ -1,6 +1,7 @@
 const File = require('../models/file');
 const path = require('path');
 const fs = require('fs');
+const log = require('../utils/log')(module);
 
 
 exports.upload_files = async (req, res) => {
@@ -12,6 +13,7 @@ exports.upload_files = async (req, res) => {
         await File.bulkCreate(files);
         res.status(201).json(files);
     } catch (e) {
+        log.error('Internal error(%d): %s',res.statusCode,e.message);
         res.status(500).json({message: 'Server error'});
     }
 };
@@ -23,8 +25,9 @@ exports.get_files = async (req, res) => {
             limit: list_size,
             offset
         });
-        res.status(200).json(response.rows);
+        res.status(200).json({rows: response.rows, pages: Math.ceil(response.count / page), countPerPage: list_size});
     } catch (e) {
+        log.error('Internal error(%d): %s',res.statusCode,e.message);
         res.status(500).json({message: 'Server error'});
     }
 };
@@ -37,6 +40,7 @@ exports.get_file = async (req, res) => {
         }
         res.status(200).json(response);
     } catch (e) {
+        log.error('Internal error(%d): %s',res.statusCode,e.message);
         res.status(500).json({message: 'Server error'});
     }
 };
@@ -53,6 +57,7 @@ exports.delete_file = async (req, res) => {
             res.status(200).json(response);
         });
     } catch (e) {
+        log.error('Internal error(%d): %s',res.statusCode,e.message);
         res.status(500).json({message: 'Server error'});
     }
 };
@@ -69,33 +74,33 @@ exports.download_file = async (req, res) => {
         const file = `${response.path}`;
         res.status(200).download(file);
     } catch (e) {
+        log.error('Internal error(%d): %s',res.statusCode,e.message);
         res.status(500).json({message: 'Server error'});
     }
 };
 exports.update_file = async (req, res) => {
     try {
-        let oldFile = await File.findByPk(+req.params.id);
-        const newFile = req.file;
-        newFile.extension = path.extname(newFile.originalname);
-        if(!oldFile) {
+        let file = await File.findByPk(+req.params.id);
+        if(!file) {
             res.status(404).json({message: 'Файл не найден'});
             return
         }
-        await fs.unlink(oldFile.path, async (err) => {
+        await fs.unlink(file.path, async (err) => {
             if (err) throw err;
-            oldFile.fieldname = newFile.fieldname;
-            oldFile.originalname = newFile.originalname;
-            oldFile.encoding = newFile.encoding;
-            oldFile.mimetype = newFile.mimetype;
-            oldFile.destination = newFile.destination;
-            oldFile.path = newFile.path;
-            oldFile.filename = newFile.filename;
-            oldFile.size = newFile.size;
-            oldFile.extension = newFile.extension;
-            await oldFile.save();
-            res.status(200).json(oldFile);
+            file.fieldname = req.file.fieldname;
+            file.originalname = req.file.originalname;
+            file.encoding = req.file.encoding;
+            file.mimetype = req.file.mimetype;
+            file.destination = req.file.destination;
+            file.path = req.file.path;
+            file.filename = req.file.filename;
+            file.size = req.file.size;
+            file.extension = path.extname(req.file.originalname);
+            await file.save();
+            res.status(200).json(file);
         });
     } catch (e) {
+        log.error('Internal error(%d): %s',res.statusCode,e.message);
         res.status(500).json({message: 'Server error'});
     }
 };

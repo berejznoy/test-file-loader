@@ -1,13 +1,12 @@
 const Sequelize = require('sequelize');
+const {dbConnection} = require('../config/main');
+const {dbName, userName, password, host, dialect, logging } = dbConnection;
 
-const DB_NAME = 'taskdb';
-const USER_NAME = 'root';
-const PASSWORD = 'S32069257b';
 
-const sequelize = new Sequelize(DB_NAME, USER_NAME, PASSWORD, {
-  host: 'localhost',
-  dialect: 'mysql',
-  logging: false
+const sequelize = new Sequelize(dbName, userName, password, {
+  host,
+  dialect,
+  logging
 });
 
 module.exports = sequelize;
