@@ -28,15 +28,9 @@ const generateRefreshToken = () => {
     }
 };
 
-const writeTokenToDB = async (idToken, idRefreshToken, idUser, flag) => {
+const writeTokenToDB = async (idToken, idRefreshToken, idUser) => {
     try {
-        let token;
-        if (flag === 'refresh') {
-            token = await Token.findOne({where: {idRefreshToken}})
-        }
-        else if (flag === 'access') {
-            token = await Token.findOne({where: { idToken }});
-        }
+        const token = await Token.findOne({where: { idToken }});
         if (token) await token.destroy();
         const newToken = { idToken, idRefreshToken, idUser };
         await Token.create(newToken)
